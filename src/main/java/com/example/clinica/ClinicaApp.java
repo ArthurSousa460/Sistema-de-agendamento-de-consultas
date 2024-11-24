@@ -22,6 +22,7 @@ public class ClinicaApp extends Application {
         Label lblMedicos = createMenuLabel("Médicos");
         Label lblPacientes = createMenuLabel("Pacientes");
         Label lblConsultas = createMenuLabel("Consultas");
+        Label lblTest = createMenuLabel("test");
         Label lblEspecialidades = createMenuLabel("Especialidades");
         sideMenu.getChildren().addAll(lblTitle, lblMedicos, lblPacientes, lblConsultas, lblEspecialidades);
 
@@ -36,6 +37,7 @@ public class ClinicaApp extends Application {
         lblPacientes.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Pacientes"));
         lblConsultas.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Consultas"));
         lblEspecialidades.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Especialidades"));
+
 
         // Configuração do BorderPane
         BorderPane root = new BorderPane();
