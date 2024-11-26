@@ -20,7 +20,7 @@ public class MedicoDAO {
 
         String sql = "INSERT INTO medico(nome, id_especialidade) VALUES(?, ?)";
         try {
-            PreparedStatement preparedStatement = conn.prepareStatement(sql);
+            PreparedStatement preparedStatement = this.conn.prepareStatement(sql);
             preparedStatement.setString(1, newMedico.getNome());
             preparedStatement.setInt(2, newMedico.getIdEspecialidade());
 

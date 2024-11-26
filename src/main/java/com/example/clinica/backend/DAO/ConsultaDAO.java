@@ -16,20 +16,34 @@ public class ConsultaDAO {
     public Boolean criarConsulta(int idPaciente, int idMedico, String dataAgendamento, StatusEnum status) {
 
         ConsultaModel newConsulta = new ConsultaModel(idPaciente, idMedico, dataAgendamento, status);
+        String sql = "CALL CriarConsulta(?,?,?,?)";
 
         try {
-            Statement statement = conn.createStatement();
-            String sql = "INSERT INTO consulta(id_paciente, id_medico, data_agendamento, status_agendamento) VALUES("
-                    + newConsulta.getIdPaciente() + ", "
-                    + newConsulta.getIdMedico() + ", '"
-                    + newConsulta.getDataAgendamento() + "', '"
-                    + newConsulta.getStatus() + "')";
-            statement.execute(sql);
-            return true;
+            CallableStatement callableStatement = this.conn.prepareCall(sql);
+            callableStatement.setInt(1, newConsulta.getIdPaciente());
+            callableStatement.setInt(2, newConsulta.getIdMedico());
+            callableStatement.setString(3, newConsulta.getDataAgendamento());
+            callableStatement.setString(4, newConsulta.getStatus().name());
+
+            try {
+                ResultSet rs = callableStatement.executeQuery();
+                if (rs.next()) {
+                    int mensagem = rs.getInt(1);
+                    if (mensagem == 1) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            }catch (SQLException e ){
+                e.printStackTrace();
+                return false;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
+        return false;
     }
 
     public List<ConsultaModel> getAllConsulta(){
