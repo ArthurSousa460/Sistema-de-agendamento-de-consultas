@@ -1,10 +1,14 @@
 package com.example.clinica;
 
+import com.example.clinica.fronEnd.TelaMedico;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class ClinicaApp extends Application {
@@ -33,7 +37,13 @@ public class ClinicaApp extends Application {
         lblWelcome.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
         contentArea.getChildren().add(lblWelcome);
 
-        lblMedicos.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar medicos"));
+        TelaMedico telaMedico = new TelaMedico();
+
+        lblMedicos.setOnMouseClicked(e -> {
+            contentArea.getChildren().clear(); 
+            contentArea.getChildren().add(telaMedico.getTela().getRoot()); 
+        });
+        
         lblPacientes.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Pacientes"));
         lblConsultas.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Consultas"));
         lblEspecialidades.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Especialidades"));
