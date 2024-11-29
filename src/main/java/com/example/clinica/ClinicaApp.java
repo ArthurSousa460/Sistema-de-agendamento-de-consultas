@@ -1,5 +1,8 @@
 package com.example.clinica;
 
+import com.example.clinica.frontEnd.ConsultaInterface;
+import com.example.clinica.frontEnd.PacienteInterface;
+import com.example.clinica.frontEnd.MedicoInterface;
 import com.example.clinica.frontEnd.EspecialidadeInterface;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -7,7 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import com.example.clinica.frontEnd.MedicoInterface;
+
 
 
 public class ClinicaApp extends Application {
@@ -32,20 +35,30 @@ public class ClinicaApp extends Application {
         // Configuração da área de conteúdo
         StackPane contentArea = new StackPane();
         contentArea.setStyle("-fx-background-color: #F4F4F4; -fx-padding: 20px;");
-        Label lblWelcome = new Label("Bem-vindo ao Sistema de Clínica");
+        Label lblWelcome = new Label("Bem-vindo ao SimpleMED");
         lblWelcome.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
         contentArea.getChildren().add(lblWelcome);
 
 
         EspecialidadeInterface telaEspecialidade = new EspecialidadeInterface();
-        MedicoInterface telaMedico = new MedicoInterface() ;
+        MedicoInterface telaMedico = new MedicoInterface();
+        PacienteInterface telaPaciente = new PacienteInterface();
+        ConsultaInterface telaConsulta = new ConsultaInterface();
 
         lblMedicos.setOnMouseClicked(e -> {
             contentArea.getChildren().clear();
             contentArea.getChildren().add(telaMedico.getScreen());
         });
-        lblPacientes.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Pacientes"));
-        lblConsultas.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Consultas"));
+
+        lblPacientes.setOnMouseClicked(e -> {
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(telaPaciente.getScreen());
+        });
+
+        lblConsultas.setOnMouseClicked(e -> {
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(telaConsulta.getScreen());
+        });
 
         lblEspecialidades.setOnMouseClicked(e -> {
             contentArea.getChildren().clear();
