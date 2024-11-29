@@ -23,4 +23,7 @@ public class EspecialidadeService {
         return this.especialidadeDAO.getAllEspecialidades();
     }
 
+    public boolean deleteEspecialidade(int idEspecialidade){
+        return this.especialidadeDAO.deleteEspecialidade(idEspecialidade);
+    }
 }

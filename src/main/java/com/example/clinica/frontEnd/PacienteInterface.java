@@ -41,19 +41,104 @@ public class PacienteInterface {
         TableColumn<PacienteModel, Integer> colId = new TableColumn<>("ID");
         TableColumn<PacienteModel, String> colNome = new TableColumn<>("Nome");
         TableColumn<PacienteModel, String> colDataNascimento = new TableColumn<>("Data de Nascimento");
+        TableColumn<PacienteModel, String> colAcoes = new TableColumn<>("Ações");
 
         // Configurando as colunas
-        //colId.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getId()));
-        //colNome.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getNome()));
-        //colDataNascimento.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDataNascimento()));
+        colId.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getId()));
+        colNome.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getNome()));
+        colDataNascimento.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDataNascimento()));
 
-        tabelaPacientes.getColumns().addAll(colId, colNome, colDataNascimento);
+        // Coluna de ações (editar e deletar)
+        colAcoes.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>("Ações"));
+        colAcoes.setCellFactory(column -> new TableCell<PacienteModel, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    // Criar um painel com os botões de editar e deletar
+                    VBox hBox = new VBox(10);
+                    Button btnEditar = new Button("Editar");
+                    btnEditar.setStyle("-fx-background-color: blue; -fx-text-fill: white;");
+                    Button btnDeletar = new Button("Deletar");
+                    btnDeletar.setStyle("-fx-background-color: red; -fx-text-fill: white;");
+
+                    // Evento para editar o paciente
+                    btnEditar.setOnAction(e -> {
+                        PacienteModel pacienteSelecionado = getTableRow().getItem();
+                        if (pacienteSelecionado != null) {
+                            // Exibe os dados do paciente no formulário para edição
+                            txtNome.setText(pacienteSelecionado.getNome());
+                            txtDataNascimento.setText(pacienteSelecionado.getDataNascimento());
+
+                            // Ao confirmar a edição, atualiza os dados
+                            btnAdicionar.setText("Atualizar Paciente");
+                            btnAdicionar.setOnAction(event -> {
+                                String nomePaciente = txtNome.getText().trim();
+                                String dataNascimentoPaciente = txtDataNascimento.getText().trim();
+
+                                if (!nomePaciente.isEmpty() && !dataNascimentoPaciente.isEmpty()) {
+                                    boolean sucesso = pacienteService.updatePaciente(pacienteSelecionado.getId(), nomePaciente, dataNascimentoPaciente);
+
+                                    if (sucesso) {
+                                        pacienteSelecionado.setNome(nomePaciente);
+                                        pacienteSelecionado.setDataNascimento(dataNascimentoPaciente);
+                                        tabelaPacientes.refresh();
+
+                                        // Limpa os campos de texto
+                                        txtNome.clear();
+                                        txtDataNascimento.clear();
+                                        btnAdicionar.setText("Adicionar Paciente");
+
+                                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                        alert.setTitle("Sucesso");
+                                        alert.setContentText("Paciente atualizado com sucesso.");
+                                        alert.showAndWait();
+                                    } else {
+                                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                                        alert.setTitle("Erro");
+                                        alert.setContentText("Erro ao atualizar paciente.");
+                                        alert.showAndWait();
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    // Evento para deletar o paciente
+                    btnDeletar.setOnAction(e -> {
+                        PacienteModel pacienteSelecionado = getTableRow().getItem();
+                        if (pacienteSelecionado != null) {
+                            boolean sucesso = pacienteService.deletePaciente(pacienteSelecionado.getId());
+                            if (sucesso) {
+                                pacientesData.remove(pacienteSelecionado);
+                                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                alert.setTitle("Sucesso");
+                                alert.setContentText("Paciente excluído com sucesso.");
+                                alert.showAndWait();
+                            } else {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Erro");
+                                alert.setContentText("Erro ao excluir paciente.");
+                                alert.showAndWait();
+                            }
+                        }
+                    });
+
+                    hBox.getChildren().addAll(btnEditar, btnDeletar);
+                    setGraphic(hBox);
+                }
+            }
+        });
+
+        tabelaPacientes.getColumns().addAll(colId, colNome, colDataNascimento, colAcoes);
 
         // Adiciona os pacientes existentes à tabela
         pacientesData.addAll(getPacientes());
         tabelaPacientes.setItems(pacientesData);
 
-        // Evento de clique no botão
+        // Evento de clique no botão para adicionar novo paciente
         btnAdicionar.setOnAction(e -> {
             String nomePaciente = txtNome.getText().trim();
             String dataNascimentoPaciente = txtDataNascimento.getText().trim();
@@ -63,32 +148,26 @@ public class PacienteInterface {
 
                 if (sucesso) {
                     // Atualiza a tabela com o novo paciente
-                    PacienteModel novoPaciente = new PacienteModel(nomePaciente, dataNascimentoPaciente); // Ajuste conforme o seu modelo
+                    PacienteModel novoPaciente = new PacienteModel(nomePaciente, dataNascimentoPaciente);
                     pacientesData.add(novoPaciente);
 
                     // Limpa os campos de texto
                     txtNome.clear();
                     txtDataNascimento.clear();
 
-                    // Mensagem de sucesso
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Sucesso");
-                    alert.setHeaderText(null);
                     alert.setContentText("Paciente adicionado com sucesso!");
                     alert.showAndWait();
                 } else {
-                    // Mensagem de erro
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setTitle("Erro");
-                    alert.setHeaderText(null);
                     alert.setContentText("Erro ao adicionar paciente.");
                     alert.showAndWait();
                 }
             } else {
-                // Campo vazio
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Atenção");
-                alert.setHeaderText(null);
                 alert.setContentText("Por favor, preencha todos os campos.");
                 alert.showAndWait();
             }

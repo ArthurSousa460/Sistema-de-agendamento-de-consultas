@@ -62,4 +62,20 @@ public class EspecialidadeDAO {
         }
     }
 
+    public boolean deleteEspecialidade(int idEspecialidade){
+        String sql = "DELETE FROM especialidade WHERE id_especialidade = ?";
+
+        try{
+            PreparedStatement preparedStatement = this.conn.prepareStatement(sql);
+            preparedStatement.setInt(1, idEspecialidade);
+
+            preparedStatement.execute();
+            return true;
+        }catch (SQLException e){
+            e.printStackTrace();
+            return false;
+        }
+
+    }
+
 }

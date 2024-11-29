@@ -6,9 +6,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +16,8 @@ public class EspecialidadeInterface {
 
     // Instância do serviço de especialidade
     private final EspecialidadeService especialidadeService = new EspecialidadeService();
+    private final TableView<EspecialidadeModel> tabelaEspecialidades = new TableView<>();
+    private final ObservableList<EspecialidadeModel> especialidadesData = FXCollections.observableArrayList();
 
     public VBox getScreen() {
         VBox layout = new VBox();
@@ -31,24 +32,13 @@ public class EspecialidadeInterface {
         // Botão para adicionar especialidade
         Button btnAdicionar = new Button("Adicionar Especialidade");
 
-        // Tabela para listar especialidades
-        TableView<EspecialidadeModel> tabelaEspecialidades = new TableView<>();
-        ObservableList<EspecialidadeModel> especialidadesData = FXCollections.observableArrayList();
-
-        TableColumn<EspecialidadeModel, String> colId = new TableColumn<>("ID");
-        TableColumn<EspecialidadeModel, String> colNome = new TableColumn<>("Nome");
-
-        // Configurando as colunas (substitua getId e getNome pelos métodos corretos de EspecialidadeModel)
-        //colId.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getId()));
-        //colNome.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getNome()));
-
-        tabelaEspecialidades.getColumns().addAll(colId, colNome);
+        // Configurar tabela de especialidades
+        configurarTabela();
 
         // Adiciona as especialidades existentes à tabela
-        especialidadesData.addAll(getEspecialidades());
-        tabelaEspecialidades.setItems(especialidadesData);
+        atualizarTabela();
 
-        // Evento de clique no botão
+        // Evento de clique no botão para adicionar especialidade
         btnAdicionar.setOnAction(e -> {
             String nomeEspecialidade = txtNome.getText().trim();
 
@@ -56,35 +46,14 @@ public class EspecialidadeInterface {
                 boolean sucesso = especialidadeService.criarEspecialidade(nomeEspecialidade);
 
                 if (sucesso) {
-                    // Atualiza a tabela com a nova especialidade
-                    EspecialidadeModel novaEspecialidade = new EspecialidadeModel(nomeEspecialidade); // Ajuste conforme o seu modelo
-                    novaEspecialidade.setNome(nomeEspecialidade);
-                    especialidadesData.add(novaEspecialidade);
-
-                    // Limpa o campo de texto
                     txtNome.clear();
-
-                    // Mensagem de sucesso
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Sucesso");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Especialidade adicionada com sucesso!");
-                    alert.showAndWait();
+                    mostrarAlerta(Alert.AlertType.INFORMATION, "Sucesso", "Especialidade adicionada com sucesso!");
+                    atualizarTabela();
                 } else {
-                    // Mensagem de erro
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Erro");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Erro ao adicionar especialidade.");
-                    alert.showAndWait();
+                    mostrarAlerta(Alert.AlertType.ERROR, "Erro", "Erro ao adicionar especialidade.");
                 }
             } else {
-                // Campo vazio
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Atenção");
-                alert.setHeaderText(null);
-                alert.setContentText("Por favor, insira um nome para a especialidade.");
-                alert.showAndWait();
+                mostrarAlerta(Alert.AlertType.WARNING, "Atenção", "Por favor, insira um nome para a especialidade.");
             }
         });
 
@@ -93,9 +62,61 @@ public class EspecialidadeInterface {
         return layout;
     }
 
-    public List<EspecialidadeModel> getEspecialidades() {
-        // Obtém as especialidades do banco de dados
+    private void configurarTabela() {
+        TableColumn<EspecialidadeModel, Integer> colId = new TableColumn<>("ID");
+        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
+
+        TableColumn<EspecialidadeModel, String> colNome = new TableColumn<>("Nome");
+        colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
+
+        TableColumn<EspecialidadeModel, Void> colAcoes = new TableColumn<>("Ações");
+        colAcoes.setCellFactory(param -> new TableCell<>() {
+            private final Button btnDeletar = new Button("Deletar");
+
+            {
+                btnDeletar.setStyle("-fx-background-color: red; -fx-text-fill: white;");
+                btnDeletar.setOnAction(event -> {
+                    EspecialidadeModel especialidade = getTableView().getItems().get(getIndex());
+                    boolean sucesso = especialidadeService.deleteEspecialidade(especialidade.getId());
+                    if (sucesso) {
+                        mostrarAlerta(Alert.AlertType.INFORMATION, "Sucesso", "Especialidade deletada com sucesso!");
+                        atualizarTabela();
+                    } else {
+                        mostrarAlerta(Alert.AlertType.ERROR, "Erro", "Erro ao deletar especialidade.");
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(btnDeletar);
+                }
+            }
+        });
+
+        tabelaEspecialidades.getColumns().addAll(colId, colNome, colAcoes);
+    }
+
+    private void atualizarTabela() {
         List<EspecialidadeModel> especialidades = especialidadeService.getAllEspecialidades();
-        return especialidades != null ? especialidades : new ArrayList<>();
+        if (especialidades != null && !especialidades.isEmpty()) {
+            especialidadesData.setAll(especialidades);
+            tabelaEspecialidades.setItems(especialidadesData);
+        } else {
+            tabelaEspecialidades.getItems().clear();
+            System.out.println("Nenhuma especialidade cadastrada!");
+        }
+    }
+
+    private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensagem) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensagem);
+        alert.showAndWait();
     }
 }

@@ -1,9 +1,7 @@
 package com.example.clinica;
 
-import com.example.clinica.frontEnd.ConsultaInterface;
-import com.example.clinica.frontEnd.PacienteInterface;
-import com.example.clinica.frontEnd.MedicoInterface;
-import com.example.clinica.frontEnd.EspecialidadeInterface;
+import com.example.clinica.backend.Services.RelatorioConsultaService;
+import com.example.clinica.frontEnd.*;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -28,9 +26,9 @@ public class ClinicaApp extends Application {
         Label lblMedicos = createMenuLabel("Médicos");
         Label lblPacientes = createMenuLabel("Pacientes");
         Label lblConsultas = createMenuLabel("Consultas");
-        Label lblTest = createMenuLabel("test");
+        Label lblRelatorio = createMenuLabel("Relatorio");
         Label lblEspecialidades = createMenuLabel("Especialidades");
-        sideMenu.getChildren().addAll(lblTitle, lblMedicos, lblPacientes, lblConsultas, lblEspecialidades);
+        sideMenu.getChildren().addAll(lblTitle, lblMedicos, lblPacientes, lblConsultas, lblEspecialidades, lblRelatorio);
 
         // Configuração da área de conteúdo
         StackPane contentArea = new StackPane();
@@ -44,7 +42,7 @@ public class ClinicaApp extends Application {
         MedicoInterface telaMedico = new MedicoInterface();
         PacienteInterface telaPaciente = new PacienteInterface();
         ConsultaInterface telaConsulta = new ConsultaInterface();
-
+        InterfaceRelatorio telaRelatorio = new InterfaceRelatorio();
         lblMedicos.setOnMouseClicked(e -> {
             contentArea.getChildren().clear();
             contentArea.getChildren().add(telaMedico.getScreen());
@@ -65,6 +63,10 @@ public class ClinicaApp extends Application {
             contentArea.getChildren().add(telaEspecialidade.getScreen());
         });
 
+        lblRelatorio.setOnMouseClicked(e -> {
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(telaRelatorio.getScreen());
+        });
 
         // Configuração do BorderPane
         BorderPane root = new BorderPane();

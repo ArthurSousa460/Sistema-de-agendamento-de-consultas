@@ -3,6 +3,7 @@ package com.example.clinica.backend.Models;
 import com.example.clinica.backend.Enums.StatusEnum;
 
 public class ConsultaModel {
+    private int idConsulta;
     private int idPaciente;
     private int idMedico;
     private String dataAgendamento;
@@ -13,6 +14,14 @@ public class ConsultaModel {
         this.idMedico = idMedico;
         this.dataAgendamento = dataAgendamento;
         this.status = status;
+    }
+
+    public int getIdConsulta() {
+        return idConsulta;
+    }
+
+    public void setIdConsulta(int idConsulta) {
+        this.idConsulta = idConsulta;
     }
 
     public int getIdPaciente() {

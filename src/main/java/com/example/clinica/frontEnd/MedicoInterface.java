@@ -9,8 +9,11 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import java.security.cert.PolicyNode;
 import java.util.List;
 
 public class MedicoInterface {
@@ -107,9 +110,78 @@ public class MedicoInterface {
         TableColumn<MedicoModel, Integer> colEspecialidade = new TableColumn<>("Especialidade");
         colEspecialidade.setCellValueFactory(new PropertyValueFactory<>("idEspecialidade"));
 
-        tableMedicoView.getColumns().addAll(colId, colNome, colEspecialidade);
+        TableColumn<MedicoModel, Void> colAcoes = new TableColumn<>("Ações");
+        colAcoes.setCellFactory(param -> new TableCell<>() {
+            private final Button btnDeletar = new Button("Deletar");
+            private final Button btnEditar = new Button("Editar");
+            private final HBox actionButtons = new HBox(10, btnEditar, btnDeletar); // Agrupar botões
+
+            {
+                btnDeletar.setStyle("-fx-background-color: red; -fx-text-fill: white;");
+                btnDeletar.setOnAction(event -> {
+                    MedicoModel medico = getTableView().getItems().get(getIndex());
+                    boolean sucesso = medicoService.deleteMedico(medico.getId());
+                    if (sucesso) {
+                        mostrarAlerta(Alert.AlertType.INFORMATION, "Sucesso", "Médico deletado com sucesso!");
+                        atualizarTabelaMedicos();
+                    } else {
+                        mostrarAlerta(Alert.AlertType.ERROR, "Erro", "Erro ao deletar médico.");
+                    }
+                });
+
+                btnEditar.setStyle("-fx-background-color: blue; -fx-text-fill: white;");
+                btnEditar.setOnAction(event -> {
+                    MedicoModel medico = getTableView().getItems().get(getIndex());
+                    exibirDialogoEditar(medico);
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(actionButtons);
+                }
+            }
+        });
+
+        tableMedicoView.getColumns().addAll(colId, colNome, colEspecialidade, colAcoes);
         atualizarTabelaMedicos();
     }
+
+    private void exibirDialogoEditar(MedicoModel medico) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Editar Médico");
+        dialog.setHeaderText("Editando: " + medico.getNome());
+
+        // Campo para editar o nome
+        TextField txtNovoNome = new TextField(medico.getNome());
+        VBox dialogLayout = new VBox(10, new Label("Novo Nome:"), txtNovoNome);
+        dialogLayout.setPadding(new Insets(10));
+
+        dialog.getDialogPane().setContent(dialogLayout);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.showAndWait().ifPresent(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                String novoNome = txtNovoNome.getText().trim();
+                if (!novoNome.isEmpty()) {
+                    boolean sucesso = medicoService.updateMedico(medico.getId(), novoNome);
+                    if (sucesso) {
+                        mostrarAlerta(Alert.AlertType.INFORMATION, "Sucesso", "Médico atualizado com sucesso!");
+                        atualizarTabelaMedicos();
+                    } else {
+                        mostrarAlerta(Alert.AlertType.ERROR, "Erro", "Erro ao atualizar médico.");
+                    }
+                } else {
+                    mostrarAlerta(Alert.AlertType.WARNING, "Atenção", "O nome não pode estar vazio.");
+                }
+            }
+        });
+    }
+
 
     private void atualizarTabelaMedicos() {
         List<MedicoModel> medicos = medicoService.getAllMedico();

@@ -56,13 +56,14 @@ public class ConsultaDAO {
             ResultSet rs = preparedStatement.executeQuery();
 
             while(rs.next()){
+                int idConsulta = rs.getInt("id_consulta");
                 int idPaciente = rs.getInt("id_paciente");
                 int idMedico = rs.getInt("id_medico");
                 String dataAgendamento = rs.getString("data_agendamento");
                 String status = rs.getString("status_agendamento");
 
                 ConsultaModel consulta = new ConsultaModel(idPaciente, idMedico, dataAgendamento, StatusEnum.valueOf(status));
-
+                consulta.setIdConsulta(idConsulta);
 
                 consultas.add(consulta);
             }

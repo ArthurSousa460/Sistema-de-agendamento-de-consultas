@@ -19,7 +19,7 @@ public class PacienteModel {
     public String getNome() {
         return name;
     }
-    public void setName(String name) {
+    public void setNome(String name) {
         this.name = name;
     }
 
