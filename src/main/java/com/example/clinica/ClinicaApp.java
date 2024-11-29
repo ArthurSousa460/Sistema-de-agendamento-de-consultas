@@ -1,11 +1,14 @@
 package com.example.clinica;
 
+import com.example.clinica.frontEnd.TelaPaciente;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import com.example.clinica.frontEnd.TelaMedico;
+import com.example.clinica.frontEnd.TelaEspecialidade;
 
 public class ClinicaApp extends Application {
 
@@ -33,10 +36,27 @@ public class ClinicaApp extends Application {
         lblWelcome.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
         contentArea.getChildren().add(lblWelcome);
 
-        lblMedicos.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar medicos"));
-        lblPacientes.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Pacientes"));
+
+        TelaEspecialidade telaEspecialidade = new TelaEspecialidade();
+        TelaMedico telaMedico = new TelaMedico();
+        TelaPaciente telaPaciente = new TelaPaciente();
+
+        lblMedicos.setOnMouseClicked(e -> {
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(telaMedico.getScreen());
+        });
+
+        lblPacientes.setOnMouseClicked(e -> {
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(telaPaciente.getScreen());
+        });
+
         lblConsultas.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Consultas"));
-        lblEspecialidades.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Especialidades"));
+
+        lblEspecialidades.setOnMouseClicked(e -> {
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(telaEspecialidade.getScreen());
+        });
 
 
         // Configuração do BorderPane
