@@ -2,21 +2,26 @@ package com.example.clinica.frontEnd;
 
 import com.example.clinica.backend.Models.EspecialidadeModel;
 import com.example.clinica.backend.Models.MedicoModel;
+import com.example.clinica.backend.Services.EspecialidadeService;
+import com.example.clinica.backend.Services.MedicoService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import com.example.clinica.backend.Services.EspecialidadeService;
-import com.example.clinica.backend.Services.MedicoService;
 
 public class MedicoInterface {
 
-    private final MedicoService medicoService = new MedicoService();
+    private TableView<MedicoModel> tableMedicoView;
+    private MedicoService medicoService;
+
+    public MedicoInterface() {
+        this.tableMedicoView = new TableView<>();
+        this.medicoService = new MedicoService();
+    }
 
     public VBox getScreen() {
         VBox layout = new VBox();
@@ -30,80 +35,98 @@ public class MedicoInterface {
 
         // Caixa de seleção para especialidades
         Label lblEspecialidade = new Label("Especialidade:");
-        ComboBox<EspecialidadeModel> cbEspecialidade = new ComboBox<>();
+        ComboBox<String> cbEspecialidade = new ComboBox<>();
 
         // Carregar especialidades do banco de dados
-        List<EspecialidadeModel> especialidades = getEspecialidades();
-        if (especialidades != null && !especialidades.isEmpty()) {
-            cbEspecialidade.setItems(FXCollections.observableArrayList(especialidades));
-            // Exibe apenas o nome da especialidade
-            cbEspecialidade.setCellFactory(param -> new ListCell<EspecialidadeModel>() {
-                @Override
-                protected void updateItem(EspecialidadeModel item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty ? "" : item.getNome());
-                }
-            });
-            cbEspecialidade.setButtonCell(new ListCell<EspecialidadeModel>() {
-                @Override
-                protected void updateItem(EspecialidadeModel item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty ? "" : item.getNome());
-                }
-            });
-        } else {
-            cbEspecialidade.setPromptText("Erro ao carregar especialidades");
-        }
+        carregarEspecialidades(cbEspecialidade);
 
         // Botão para adicionar médico
         Button btnAdicionar = new Button("Adicionar Médico");
 
-        // Evento de clique no botão
-        btnAdicionar.setOnAction(e -> {
+        btnAdicionar.setOnAction(event -> {
             String nomeMedico = txtNome.getText().trim();
-            EspecialidadeModel especialidadeSelecionada = cbEspecialidade.getValue();
+            String especialidadeNome = cbEspecialidade.getValue();
 
-            if (!nomeMedico.isEmpty() && especialidadeSelecionada != null) {
-                // Chama o serviço para criar o médico com o ID da especialidade
-                boolean sucesso = medicoService.criarMedico(nomeMedico, especialidadeSelecionada.getId());
-
-                if (sucesso) {
-                    // Limpa os campos após adicionar
-                    txtNome.clear();
-                    cbEspecialidade.getSelectionModel().clearSelection();
-
-                    // Mensagem de sucesso
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Sucesso");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Médico adicionado com sucesso!");
-                    alert.showAndWait();
-                } else {
-                    // Mensagem de erro
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Erro");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Erro ao adicionar médico.");
-                    alert.showAndWait();
-                }
+            if (nomeMedico.isEmpty() || especialidadeNome == null) {
+                mostrarAlerta(Alert.AlertType.WARNING, "Atenção", "Por favor, preencha todos os campos.");
             } else {
-                // Mensagem de alerta se campos não forem preenchidos corretamente
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Atenção");
-                alert.setHeaderText(null);
-                alert.setContentText("Por favor, insira todos os dados.");
-                alert.showAndWait();
+                EspecialidadeModel especialidade = buscarEspecialidadePorNome(especialidadeNome);
+                if (especialidade != null) {
+                    boolean sucesso = medicoService.criarMedico(nomeMedico, especialidade.getId());
+                    if (sucesso) {
+                        txtNome.clear();
+                        cbEspecialidade.getSelectionModel().clearSelection();
+                        mostrarAlerta(Alert.AlertType.INFORMATION, "Sucesso", "Médico adicionado com sucesso!");
+                        atualizarTabelaMedicos();
+                    } else {
+                        mostrarAlerta(Alert.AlertType.ERROR, "Erro", "Erro ao adicionar médico.");
+                    }
+                } else {
+                    mostrarAlerta(Alert.AlertType.ERROR, "Erro", "Especialidade selecionada é inválida.");
+                }
             }
         });
 
+        // Configurar a tabela de médicos
+        configurarTabela();
+
         // Adiciona os componentes ao layout
-        layout.getChildren().addAll(lblNome, txtNome, lblEspecialidade, cbEspecialidade, btnAdicionar);
+        layout.getChildren().addAll(lblNome, txtNome, lblEspecialidade, cbEspecialidade, btnAdicionar, this.tableMedicoView);
         return layout;
     }
 
-    // Método para carregar especialidades
-    public List<EspecialidadeModel> getEspecialidades() {
+    private void carregarEspecialidades(ComboBox<String> cbEspecialidade) {
         EspecialidadeService especialidadeService = new EspecialidadeService();
-        return especialidadeService.getAllEspecialidades();
+        List<EspecialidadeModel> especialidades = especialidadeService.getAllEspecialidades();
+
+        if (especialidades != null && !especialidades.isEmpty()) {
+            for (EspecialidadeModel especialidade : especialidades) {
+                cbEspecialidade.getItems().add(especialidade.getNome());
+            }
+        } else {
+            cbEspecialidade.setPromptText("Erro ao carregar especialidades");
+        }
+    }
+
+    private EspecialidadeModel buscarEspecialidadePorNome(String nome) {
+        EspecialidadeService especialidadeService = new EspecialidadeService();
+        List<EspecialidadeModel> especialidades = especialidadeService.getAllEspecialidades();
+        return especialidades.stream()
+                .filter(especialidade -> especialidade.getNome().equalsIgnoreCase(nome))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void configurarTabela() {
+        TableColumn<MedicoModel, Integer> colId = new TableColumn<>("ID");
+        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
+
+        TableColumn<MedicoModel, String> colNome = new TableColumn<>("Nome");
+        colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
+
+        TableColumn<MedicoModel, Integer> colEspecialidade = new TableColumn<>("Especialidade");
+        colEspecialidade.setCellValueFactory(new PropertyValueFactory<>("idEspecialidade"));
+
+        tableMedicoView.getColumns().addAll(colId, colNome, colEspecialidade);
+        atualizarTabelaMedicos();
+    }
+
+    private void atualizarTabelaMedicos() {
+        List<MedicoModel> medicos = medicoService.getAllMedico();
+        if (medicos != null && !medicos.isEmpty()) {
+            ObservableList<MedicoModel> medicosData = FXCollections.observableArrayList(medicos);
+            tableMedicoView.setItems(medicosData);
+        } else {
+            tableMedicoView.getItems().clear();
+            System.out.println("Nenhum médico cadastrado!");
+        }
+    }
+
+    private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensagem) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensagem);
+        alert.showAndWait();
     }
 }
