@@ -1,5 +1,6 @@
 package com.example.clinica;
 
+import com.example.clinica.frontEnd.TelaConsulta;
 import com.example.clinica.frontEnd.TelaPaciente;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -40,6 +41,7 @@ public class ClinicaApp extends Application {
         TelaEspecialidade telaEspecialidade = new TelaEspecialidade();
         TelaMedico telaMedico = new TelaMedico();
         TelaPaciente telaPaciente = new TelaPaciente();
+        TelaConsulta telaConsulta = new TelaConsulta();
 
         lblMedicos.setOnMouseClicked(e -> {
             contentArea.getChildren().clear();
@@ -51,7 +53,10 @@ public class ClinicaApp extends Application {
             contentArea.getChildren().add(telaPaciente.getScreen());
         });
 
-        lblConsultas.setOnMouseClicked(e -> lblWelcome.setText("Gerenciar Consultas"));
+        lblConsultas.setOnMouseClicked(e -> {
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(telaConsulta.getScreen());
+        });
 
         lblEspecialidades.setOnMouseClicked(e -> {
             contentArea.getChildren().clear();
