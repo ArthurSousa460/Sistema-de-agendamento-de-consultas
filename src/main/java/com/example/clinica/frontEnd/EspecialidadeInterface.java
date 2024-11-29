@@ -6,7 +6,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 
@@ -16,19 +15,8 @@ import java.util.List;
 
 public class EspecialidadeInterface {
 
-    private TableView <EspecialidadeModel> tableEspecialidadesView;
-    private EspecialidadeService especialidadeService;
-    private ObservableList<EspecialidadeModel> especialidadesData;
-
-    public EspecialidadeInterface() {
-        this.especialidadeService = new EspecialidadeService();
-        this.tableEspecialidadesView = new TableView<>();
-    }
-
-    public void setEspecialidadeData() {
-        List<EspecialidadeModel> especialidades = this.especialidadeService.getAllEspecialidades();
-        this.especialidadesData = FXCollections.observableArrayList(especialidades);
-    }
+    // Instância do serviço de especialidade
+    private final EspecialidadeService especialidadeService = new EspecialidadeService();
 
     public VBox getScreen() {
         VBox layout = new VBox();
@@ -43,18 +31,22 @@ public class EspecialidadeInterface {
         // Botão para adicionar especialidade
         Button btnAdicionar = new Button("Adicionar Especialidade");
 
+        // Tabela para listar especialidades
+        TableView<EspecialidadeModel> tabelaEspecialidades = new TableView<>();
+        ObservableList<EspecialidadeModel> especialidadesData = FXCollections.observableArrayList();
+
         TableColumn<EspecialidadeModel, String> colId = new TableColumn<>("ID");
-        colId.setCellValueFactory(new PropertyValueFactory<>("Id"));
         TableColumn<EspecialidadeModel, String> colNome = new TableColumn<>("Nome");
-        colNome.setCellValueFactory(new PropertyValueFactory<>("Nome"));
 
         // Configurando as colunas (substitua getId e getNome pelos métodos corretos de EspecialidadeModel)
         //colId.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getId()));
         //colNome.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue().getNome()));
 
-        this.tableEspecialidadesView.getColumns().addAll(colId, colNome);
-        getEspecialidades();
+        tabelaEspecialidades.getColumns().addAll(colId, colNome);
 
+        // Adiciona as especialidades existentes à tabela
+        especialidadesData.addAll(getEspecialidades());
+        tabelaEspecialidades.setItems(especialidadesData);
 
         // Evento de clique no botão
         btnAdicionar.setOnAction(e -> {
@@ -97,19 +89,13 @@ public class EspecialidadeInterface {
         });
 
         // Adiciona os componentes ao layout
-        layout.getChildren().addAll(lblNome, txtNome, btnAdicionar, this.tableEspecialidadesView);
+        layout.getChildren().addAll(lblNome, txtNome, btnAdicionar, tabelaEspecialidades);
         return layout;
     }
 
-    public void getEspecialidades() {
-        this.setEspecialidadeData();
-
-        if(this.especialidadesData != null){
-            this.tableEspecialidadesView.getItems().clear();
-
-            this.tableEspecialidadesView.setItems(especialidadesData);
-        }else{
-            System.out.println("Não há especialidades listadas!");
-        }
+    public List<EspecialidadeModel> getEspecialidades() {
+        // Obtém as especialidades do banco de dados
+        List<EspecialidadeModel> especialidades = especialidadeService.getAllEspecialidades();
+        return especialidades != null ? especialidades : new ArrayList<>();
     }
 }
