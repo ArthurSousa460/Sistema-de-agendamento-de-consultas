@@ -6,4 +6,5 @@ module com.example.clinica {
 
     exports com.example.clinica;
     opens com.example.clinica to javafx.fxml;
+    exports com.example.clinica.backend.Models;
 }

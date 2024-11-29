@@ -22,4 +22,5 @@ public class EspecialidadeService {
     public List<EspecialidadeModel> getAllEspecialidades(){
         return this.especialidadeDAO.getAllEspecialidades();
     }
+
 }
