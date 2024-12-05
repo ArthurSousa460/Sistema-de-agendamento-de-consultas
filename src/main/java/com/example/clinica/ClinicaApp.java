@@ -1,6 +1,5 @@
 package com.example.clinica;
 
-import com.example.clinica.backend.Services.RelatorioConsultaService;
 import com.example.clinica.frontEnd.*;
 import javafx.application.Application;
 import javafx.geometry.Insets;

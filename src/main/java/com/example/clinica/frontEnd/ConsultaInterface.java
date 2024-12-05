@@ -10,9 +10,11 @@ import com.example.clinica.backend.Services.PacienteService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import java.util.List;
 
@@ -111,6 +113,15 @@ public class ConsultaInterface {
 
     private void configurarTabela() {
 
+        TableColumn<ConsultaModel, String> colIdConsulta = new TableColumn<>("consulta_id");
+        colIdConsulta.setCellValueFactory(new PropertyValueFactory<>("idConsulta"));
+
+        TableColumn<ConsultaModel, String> colMedicoId = new TableColumn<>("medico_id");
+        colMedicoId.setCellValueFactory(new PropertyValueFactory<>("idMedico"));
+
+        TableColumn<ConsultaModel, String> colPacienteId = new TableColumn<>("paciente_id");
+        colMedicoId.setCellValueFactory(new PropertyValueFactory<>("idPaciente"));
+
         TableColumn<ConsultaModel, String> colStatus = new TableColumn<>("Status");
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
@@ -139,7 +150,7 @@ public class ConsultaInterface {
             }
         });
 
-        tabelaConsultas.getColumns().addAll(colStatus, colData, colAcoes);
+        tabelaConsultas.getColumns().addAll(colIdConsulta, colMedicoId,colPacienteId ,colStatus, colData, colAcoes);
         atualizarTabela();
     }
 
@@ -171,10 +182,61 @@ public class ConsultaInterface {
 
     private void editarConsulta(int index) {
         ConsultaModel consulta = tabelaConsultas.getItems().get(index);
-        // Pegue os dados da consulta e abra um modal ou tela para edição
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Editar consulta - ID: " + consulta.getIdConsulta());
-        alert.showAndWait();
+
+        // Cria a janela de edição
+        Stage editarStage = new Stage();
+        editarStage.setTitle("Editar Consulta");
+
+        // Layout da janela
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(20));
+        vbox.setStyle("-fx-background-color: #F4F4F4;");
+
+        // Campos de texto para editar os dados da consulta
+        Label lblStatus = new Label("Status:");
+        ComboBox<String> cbStatus = new ComboBox<>();
+        cbStatus.getItems().addAll("Agendado", "Concluido");
+        cbStatus.setValue(consulta.getStatus().toString());
+
+        Label lblData = new Label("Data de Agendamento:");
+        TextField txtData = new TextField(consulta.getDataAgendamento());
+
+        // Botão para salvar as alterações
+        Button btnSalvar = new Button("Salvar Alterações");
+        btnSalvar.setOnAction(e -> {
+            String novoStatus = cbStatus.getValue();
+            String novaData = txtData.getText().trim();
+
+            if (novoStatus != null && !novaData.isEmpty()) {
+                boolean sucesso = consultaService.updateConsulta(consulta.getIdPaciente(), consulta.getIdConsulta(), consulta.getIdConsulta(), novaData, StatusEnum.valueOf(novoStatus.toUpperCase()));
+                if (sucesso) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Consulta atualizada com sucesso!");
+                    alert.showAndWait();
+                    editarStage.close();
+                    atualizarTabela(); // Atualiza a tabela após a edição
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Erro ao atualizar consulta.");
+                    alert.showAndWait();
+                }
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Preencha todos os campos.");
+                alert.showAndWait();
+            }
+        });
+
+        // Botão para cancelar a edição
+        Button btnCancelar = new Button("Cancelar");
+        btnCancelar.setOnAction(e -> editarStage.close());
+
+        // Adiciona os elementos ao layout
+        vbox.getChildren().addAll(lblStatus, cbStatus, lblData, txtData, btnSalvar, btnCancelar);
+
+        // Define a cena e exibe a janela
+        Scene scene = new Scene(vbox, 300, 250);
+        editarStage.setScene(scene);
+        editarStage.show();
     }
+
 
     private void deletarConsulta(int index) {
         ConsultaModel consulta = tabelaConsultas.getItems().get(index);
